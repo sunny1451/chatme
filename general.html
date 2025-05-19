@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>WhatsApp Style Real-time Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(to bottom right, #ffe6e6, #fff5f5);
+  }
+
+  header {
+    background: linear-gradient(to right, #ff5f6d, #ffc371);
+    color: white;
+    padding: 15px 25px;
+    font-size: 22px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+
+  #currentUser {
+    font-size: 14px;
+    font-weight: normal;
+    opacity: 0.85;
+  }
+
+  main {
+    flex: 1;
+    max-width: 720px;
+    margin: 20px auto;
+    width: 95%;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+
+  .search-section {
+    display: flex;
+    padding: 14px 20px;
+    background: #fbe5e5;
+    gap: 10px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .search-section input {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 25px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+
+  .search-section input:focus {
+    border-color: #ff5f6d;
+    box-shadow: 0 0 0 2px rgba(255, 95, 109, 0.2);
+  }
+
+  .search-section button {
+    background: #ff5f6d;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 25px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+
+  .search-section button:hover {
+    background: #e64558;
+  }
+
+  .chat-header {
+    padding: 14px 20px;
+    background: #fff0f0;
+    font-weight: bold;
+    font-size: 17px;
+    border-bottom: 1px solid #f1cfcf;
+    display: flex;
+    align-items: center;
+    color: #d14a61;
+  }
+
+  #chatBox {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: #fffafc;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .message {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 20px;
+    font-size: 15px;
+    line-height: 1.4;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .message.sent {
+    align-self: flex-end;
+    background: #d4ffdc;
+    border-bottom-right-radius: 5px;
+  }
+
+  .message.received {
+    align-self: flex-start;
+    background: #ffffff;
+    border-bottom-left-radius: 5px;
+  }
+
+  .chat-input {
+    display: flex;
+    padding: 14px 18px;
+    background: #fff;
+    border-top: 1px solid #eee;
+    gap: 10px;
+  }
+
+  .chat-input textarea {
+    flex: 1;
+    resize: none;
+    border-radius: 25px;
+    border: 1px solid #ccc;
+    padding: 12px 16px;
+    font-size: 15px;
+    line-height: 20px;
+    height: 42px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.3s ease;
+  }
+
+  .chat-input textarea:focus {
+    border-color: #ff5f6d;
+    box-shadow: 0 0 0 2px rgba(255, 95, 109, 0.2);
+  }
+
+  .chat-input button {
+    width: 42px;
+    height: 42px;
+    background: #ff5f6d;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+  }
+
+  .chat-input button:hover:not(:disabled) {
+    background: #e64558;
+  }
+
+  .chat-input button:disabled {
+    background: #ffd4d4;
+    cursor: not-allowed;
+  }
+
+  .no-chat {
+    margin-top: 20px;
+    color: #999;
+    text-align: center;
+    font-style: italic;
+    font-size: 15px;
+  }
+  #chatAIButton {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    background: linear-gradient(135deg, #ff5f6d, #ffc371);
+    color: white;
+    padding: 14px 22px;
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 3px 3px 12px rgba(255, 95, 109, 0.6);
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+    transition: left 0.3s ease, box-shadow 0.3s ease;
+    text-decoration: none;
+  }
+  #chatAIButton:hover {
+    left: 8px;
+    box-shadow: 5px 5px 20px rgba(255, 95, 109, 0.9);
+  }
+  #chatAIButton svg {
+    width: 22px;
+    height: 22px;
+    fill: white;
+    flex-shrink: 0;
+  }
+</style>
+
+</head>
+<body>
+
+<header>
+  WhatsApp
+  <div>
+    <span id="currentUser">Not logged in</span>
+  </div>
+</header>
+<a href="file:///C:/Users/sunny/OneDrive/Desktop/voice/chaithanyai.html" id="chatAIButton" title="Chat with AI" aria-label="Go to AI chat">
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 4h16v12H5.17L4 17.17V4zM20 2H4a2 2 0 00-2 2v16l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2z"/>
+  </svg>
+  Chat with AI
+</a>
+<main>
+  <div class="search-section">
+    <input id="recipientEmailInput" type="email" placeholder="Enter recipient email to chat" />
+    <button id="startChatBtn">Start Chat</button>
+  </div>
+
+  <div class="chat-header" id="chatHeader" style="display:none"></div>
+
+  <div id="chatBox" class="chat-box">
+    <div class="no-chat">No chat selected. Enter recipient email above and start chatting.</div>
+  </div>
+
+  <form id="chatForm" class="chat-input" style="display:none" autocomplete="off">
+    <textarea id="messageInput" rows="1" placeholder="Type a message"></textarea>
+    <button type="submit" disabled>➤</button>
+  </form>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, addDoc,
+    collection, query, orderBy, onSnapshot, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+
+  // Your actual Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyBh28_IbZA9VYMmHaGu6pof1ZqRzc7nxsY",
+    authDomain: "chatbot-54dc8.firebaseapp.com",
+    projectId: "chatbot-54dc8",
+    storageBucket: "chatbot-54dc8.firebasestorage.app",
+    messagingSenderId: "663702276358",
+    appId: "1:663702276358:web:9bcfcbda928651171e3687",
+    measurementId: "G-5EF55C1HEV"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  // DOM references
+  const currentUserSpan = document.getElementById("currentUser");
+  const recipientEmailInput = document.getElementById("recipientEmailInput");
+  const startChatBtn = document.getElementById("startChatBtn");
+  const chatHeader = document.getElementById("chatHeader");
+  const chatBox = document.getElementById("chatBox");
+  const chatForm = document.getElementById("chatForm");
+  const messageInput = document.getElementById("messageInput");
+  const sendBtn = chatForm.querySelector("button");
+
+  let currentUser = null;  // logged-in user email
+  let currentChatRoomId = null;
+  let unsubscribeMessages = null;
+
+  // Update UI to show logged-in email or not logged in
+  function updateCurrentUserUI() {
+    if (currentUser) {
+      currentUserSpan.innerHTML = `Logged in as: <strong>${currentUser}</strong>`;
+    } else {
+      currentUserSpan.innerHTML = `Not logged in`;
+    }
+  }
+
+  // Create chat room id based on two emails
+  function createChatRoomId(email1, email2) {
+    return [email1.trim().toLowerCase(), email2.trim().toLowerCase()].sort().join("_");
+  }
+
+  // Check if user exists in Firestore "users" collection
+  async function userExists(email) {
+    const userDoc = await getDoc(doc(db, "users", email.toLowerCase()));
+    return userDoc.exists();
+  }
+
+  // Create chat room doc if not exists
+  async function getOrCreateChatRoom(chatRoomId, participants) {
+    const chatDocRef = doc(db, "chats", chatRoomId);
+    const chatSnap = await getDoc(chatDocRef);
+
+    if (!chatSnap.exists()) {
+      await setDoc(chatDocRef, { participants });
+    }
+    return chatDocRef;
+  }
+
+  // Clear chat UI messages
+  function clearChat() {
+    chatBox.innerHTML = '';
+  }
+
+  // Scroll chat to bottom
+  function scrollToBottom() {
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  // Render single message
+  function renderMessage(msg) {
+    const div = document.createElement("div");
+    div.classList.add("message");
+    div.classList.add(msg.sender === currentUser ? "sent" : "received");
+    div.textContent = msg.text;
+    chatBox.appendChild(div);
+  }
+
+  // Listen to chat messages realtime
+  function listenMessages(chatRoomId) {
+    if (unsubscribeMessages) unsubscribeMessages();
+
+    const messagesRef = collection(db, "chats", chatRoomId, "messages");
+    const q = query(messagesRef, orderBy("timestamp", "asc"));
+
+    unsubscribeMessages = onSnapshot(q, (snapshot) => {
+      clearChat();
+      if (snapshot.empty) {
+        chatBox.innerHTML = `<div class="no-chat">No messages yet. Say hi!</div>`;
+      } else {
+        snapshot.forEach(doc => {
+          renderMessage(doc.data());
+        });
+        scrollToBottom();
+      }
+    });
+  }
+
+  // Start chat with recipient
+  async function startChatWith(recipientEmail) {
+    if (!currentUser) {
+      alert("You must be logged in to start a chat.");
+      return;
+    }
+    recipientEmail = recipientEmail.trim().toLowerCase();
+    if (recipientEmail === currentUser) {
+      alert("You cannot chat with yourself!");
+      return;
+    }
+    if (!recipientEmail) {
+      alert("Please enter a recipient email.");
+      return;
+    }
+
+    startChatBtn.disabled = true;
+    startChatBtn.textContent = "Checking...";
+    try {
+      const exists = await userExists(recipientEmail);
+      if (!exists) {
+        alert("Recipient user not found in users collection.");
+        return;
+      }
+      currentChatRoomId = createChatRoomId(currentUser, recipientEmail);
+      const participants = [currentUser, recipientEmail];
+      await getOrCreateChatRoom(currentChatRoomId, participants);
+      chatHeader.style.display = "flex";
+      chatHeader.textContent = `Chat with ${recipientEmail}`;
+      chatForm.style.display = "flex";
+      messageInput.value = "";
+      sendBtn.disabled = true;
+      listenMessages(currentChatRoomId);
+    } catch (e) {
+      alert("Error starting chat: " + e.message);
+    } finally {
+      startChatBtn.disabled = false;
+      startChatBtn.textContent = "Start Chat";
+    }
+  }
+
+  // Send message handler
+  chatForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!currentUser || !currentChatRoomId) return;
+
+    const text = messageInput.value.trim();
+    if (!text) return;
+
+    sendBtn.disabled = true;
+    try {
+      const messagesRef = collection(db, "chats", currentChatRoomId, "messages");
+      await addDoc(messagesRef, {
+        text,
+        sender: currentUser,
+        timestamp: serverTimestamp()
+      });
+      messageInput.value = "";
+      sendBtn.disabled = true;
+      scrollToBottom();
+    } catch (e) {
+      alert("Error sending message: " + e.message);
+    }
+  });
+
+  // Enable/disable send button based on input
+  messageInput.addEventListener("input", () => {
+    sendBtn.disabled = !messageInput.value.trim();
+  });
+
+  // Start chat button click
+  startChatBtn.addEventListener("click", () => {
+    startChatWith(recipientEmailInput.value);
+  });
+
+  // Allow Enter key to start chat
+  recipientEmailInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      startChatWith(recipientEmailInput.value);
+    }
+  });
+
+  // Listen for Firebase Auth state changes
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user.email;
+      updateCurrentUserUI();
+
+      // Reset chat UI on login
+      currentChatRoomId = null;
+      if (unsubscribeMessages) unsubscribeMessages();
+      unsubscribeMessages = null;
+      chatHeader.style.display = "none";
+      chatForm.style.display = "none";
+      chatBox.innerHTML = `<div class="no-chat">No chat selected. Enter recipient email above and start chatting.</div>`;
+    } else {
+      currentUser = null;
+      updateCurrentUserUI();
+
+      // Optionally redirect to login page if user not logged in
+      // window.location.href = 'login.html';
+
+      chatHeader.style.display = "none";
+      chatForm.style.display = "none";
+      chatBox.innerHTML = `<div class="no-chat">Please log in to chat.</div>`;
+    }
+  });
+
+</script>
+
+</body>
+</html>
