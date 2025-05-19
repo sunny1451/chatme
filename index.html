@@ -156,89 +156,121 @@
     <div id="message" class="message"></div>
     <div class="toggle" onclick="toggleForm()">Don't have an account? Register</div>
   </div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-analytics.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyBh28_IbZA9VYMmHaGu6pof1ZqRzc7nxsY",
+  authDomain: "chatbot-54dc8.firebaseapp.com",
+  projectId: "chatbot-54dc8",
+  storageBucket: "chatbot-54dc8.firebasestorage.app",
+  messagingSenderId: "663702276358",
+  appId: "1:663702276358:web:9bcfcbda928651171e3687",
+  measurementId: "G-5EF55C1HEV"
+};
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBh28_IbZA9VYMmHaGu6pof1ZqRzc7nxsY",
-      authDomain: "chatbot-54dc8.firebaseapp.com",
-      projectId: "chatbot-54dc8",
-      storageBucket: "chatbot-54dc8.firebasestorage.app",
-      messagingSenderId: "663702276358",
-      appId: "1:663702276358:web:9bcfcbda928651171e3687",
-      measurementId: "G-5EF55C1HEV"
-    };
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth(app);
+let isLogin = true;
 
-    let isLogin = true;
+window.toggleForm = () => {
+  isLogin = !isLogin;
+  document.getElementById("formTitle").textContent = isLogin ? "Login" : "Register";
+  document.getElementById("submitBtn").textContent = isLogin ? "Login" : "Register";
+  document.querySelector(".toggle").textContent = isLogin
+    ? "Don't have an account? Register"
+    : "Already have an account? Login";
+  clearMessage();
+};
 
-    window.toggleForm = () => {
-      isLogin = !isLogin;
-      document.getElementById("formTitle").textContent = isLogin ? "Login" : "Register";
-      document.getElementById("submitBtn").textContent = isLogin ? "Login" : "Register";
-      document.querySelector(".toggle").textContent = isLogin
-        ? "Don't have an account? Register"
-        : "Already have an account? Login";
-      clearMessage();
-    };
+window.togglePassword = () => {
+  const passwordInput = document.getElementById("password");
+  passwordInput.type = passwordInput.type === "password" ? "text" : "password";
+};
 
-    window.togglePassword = () => {
-      const passwordInput = document.getElementById("password");
-      passwordInput.type = passwordInput.type === "password" ? "text" : "password";
-    };
+const showMessage = (msg, isError = false) => {
+  const message = document.getElementById("message");
+  message.textContent = msg;
+  message.className = isError ? "message error" : "message success";
+};
 
-    const showMessage = (msg, isError = false) => {
-      const message = document.getElementById("message");
-      message.textContent = msg;
-      message.className = isError ? "message error" : "message success";
-    };
+const clearMessage = () => {
+  const message = document.getElementById("message");
+  message.textContent = "";
+  message.className = "message";
+};
 
-    const clearMessage = () => {
-      const message = document.getElementById("message");
-      message.textContent = "";
-      message.className = "message";
-    };
+window.handleAuth = async () => {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const loader = document.getElementById("loader");
 
-    window.handleAuth = async () => {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const loader = document.getElementById("loader");
+  clearMessage();
 
-      clearMessage();
+  if (!email || !password) {
+    showMessage("Please fill in both fields.", true);
+    return;
+  }
 
-      if (!email || !password) {
-        showMessage("Please fill in both fields.", true);
-        return;
-      }
+  loader.style.display = "block";
 
-      loader.style.display = "block";
+  try {
+    if (isLogin) {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
+      // Check if user exists in Firestore workers collection
       try {
-        if (isLogin) {
-          await signInWithEmailAndPassword(auth, email, password);
+        const workerRef = doc(db, "workers", user.uid);
+        const workerSnap = await getDoc(workerRef);
+
+        if (workerSnap.exists()) {
           showMessage("Logged in successfully!");
           setTimeout(() => {
-            window.location.href = "https://sunny1451.github.io/chatme/general.html";
+            window.location.href = "file:///C:/Users/sunny/OneDrive/Desktop/voice/general/general.html";
           }, 1000);
         } else {
-          await createUserWithEmailAndPassword(auth, email, password);
-          showMessage("Registered successfully!");
+          showMessage("You haven't completed registration. Redirecting...", true);
           setTimeout(() => {
-            toggleForm();
-          }, 1000);
+            window.location.href = "worker-register.html";
+          }, 1500);
         }
-      } catch (error) {
-        showMessage(error.message, true);
-      } finally {
-        loader.style.display = "none";
+      } catch (firestoreErr) {
+        showMessage("Login successful. Finishing setup...", false);
+        setTimeout(() => {
+          window.location.href = "worker-register.html";
+        }, 1500);
       }
-    };
-  </script>
+
+    } else {
+      await createUserWithEmailAndPassword(auth, email, password);
+      showMessage("Registered successfully!");
+      setTimeout(() => {
+        toggleForm();
+      }, 1000);
+    }
+
+  } catch (authError) {
+    let errorMsg = "Something went wrong. Try again.";
+    if (authError.code === "auth/email-already-in-use") {
+      errorMsg = "This email is already registered. Please log in.";
+    } else if (authError.code === "auth/invalid-email") {
+      errorMsg = "Invalid email format.";
+    } else if (authError.code === "auth/wrong-password") {
+      errorMsg = "Incorrect password.";
+    } else if (authError.code === "auth/user-not-found") {
+      errorMsg = "User not found. Please register first.";
+    }
+    showMessage(errorMsg, true);
+  } finally {
+    loader.style.display = "none";
+  }
+};
+</script>
+
 </body>
 </html>
