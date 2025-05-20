@@ -159,7 +159,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js"; // <-- added setDoc
 
 const firebaseConfig = {
   apiKey: "AIzaSyBh28_IbZA9VYMmHaGu6pof1ZqRzc7nxsY",
@@ -204,6 +204,14 @@ const clearMessage = () => {
   message.className = "message";
 };
 
+// ✅ Save user email in Firestore "users" collection
+const saveUserToFirestore = async (email) => {
+  const userDocRef = doc(db, "users", email);
+  await setDoc(userDocRef, {
+    email: email
+  });
+};
+
 window.handleAuth = async () => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
@@ -223,7 +231,6 @@ window.handleAuth = async () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Check if user exists in Firestore workers collection
       try {
         const workerRef = doc(db, "workers", user.uid);
         const workerSnap = await getDoc(workerRef);
@@ -242,12 +249,16 @@ window.handleAuth = async () => {
       } catch (firestoreErr) {
         showMessage("Login successful. Finishing setup...", false);
         setTimeout(() => {
-          window.location.href = " https://sunny1451.github.io/chatme/general.html";
+          window.location.href = "worker-register.html";
         }, 1500);
       }
 
     } else {
       await createUserWithEmailAndPassword(auth, email, password);
+
+      // ✅ Save email in users collection
+      await saveUserToFirestore(email);
+
       showMessage("Registered successfully!");
       setTimeout(() => {
         toggleForm();
@@ -270,6 +281,7 @@ window.handleAuth = async () => {
     loader.style.display = "none";
   }
 };
+
 </script>
 
 </body>
