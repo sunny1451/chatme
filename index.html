@@ -238,19 +238,19 @@ window.handleAuth = async () => {
         if (workerSnap.exists()) {
           showMessage("Logged in successfully!");
           setTimeout(() => {
-            window.location.href = "file:///C:/Users/sunny/OneDrive/Desktop/voice/general/general.html";
+            window.location.href = "https://sunny1451.github.io/chatme/general.html";
           }, 1000);
         } else {
           showMessage("You haven't completed registration. Redirecting...", true);
           setTimeout(() => {
-            window.location.href = "worker-register.html";
-          }, 1500);
+            window.location.href = "https://sunny1451.github.io/chatme/general.html";
+          }, 1000);
         }
       } catch (firestoreErr) {
         showMessage("Login successful. Finishing setup...", false);
         setTimeout(() => {
-          window.location.href = "worker-register.html";
-        }, 1500);
+          window.location.href = "https://sunny1451.github.io/chatme/general.html";
+        }, 1000);
       }
 
     } else {
